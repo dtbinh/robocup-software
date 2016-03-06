@@ -316,7 +316,8 @@ void Processor::run() {
 
                 if (fieldSize->field_length() != 0 &&
                     (currentDimensions.Length() != fieldSize->field_length())) {
-                    decodeGeometryPacket(fieldSize);
+                    // Set the changed field dimensions to the current ones
+                    setFieldDimensions(decodeGeometryPacket(fieldSize));
                 }
 
                 double rt = packet->receivedTime / 1000000.0;
@@ -648,8 +649,6 @@ Field_Dimensions Processor::decodeGeometryPacket(SSL_GeometryFieldSize* fieldSiz
         fieldSize->boundary_width() * 2,
         fieldSize->field_length() +
         fieldSize->boundary_width() * 2);
-    // Set the changed field dimensions to the current ones
-    setFieldDimensions(currentDimensions);
 }
 
 void Processor::sendRadioData() {
