@@ -308,21 +308,25 @@ void Processor::run() {
             log->CopyFrom(packet->wrapper);
 
             curStatus.lastVisionTime = packet->receivedTime;
-            if (packet->wrapper.has_detection()) {
-                SSL_DetectionFrame* det = packet->wrapper.mutable_detection();
-                SSL_GeometryData* geom = packet->wrapper.mutable_geometry();
+
+            if (packet->wrapper.has_geometry()) {
+                SSL_GeometryData geom = packet->wrapper.geometry();
 
                 // DEMO: Test out field sizes
-                SSL_GeometryFieldSize* fieldSize = geom->mutable_field();
-                // cout << "Len: " << fieldSize->field_length() << " Width: " <<
-                // fieldSize->field_width() << endl;
+                SSL_GeometryFieldSize fieldSize = geom.field();
+                cout << "Len: " << fieldSize.field_length() << " Width: " <<
+                    fieldSize.field_width() << endl;
                 // FIXME - Account for network latency
 
-                if (fieldSize->field_length() != 0 &&
-                    (currentDimensions.Length() != fieldSize->field_length())) {
+                if (fieldSize.field_length() != 0 &&
+                    (currentDimensions.Length() != fieldSize.field_length())) {
                     // Set the changed field dimensions to the current ones
-                    setFieldDimensions(decodeGeometryPacket(fieldSize));
+                    setFieldDimensions(decodeGeometryPacket(&fieldSize));
                 }
+            }
+
+            if (packet->wrapper.has_detection()) {
+                SSL_DetectionFrame* det = packet->wrapper.mutable_detection();
 
                 double rt = packet->receivedTime / 1000000.0;
                 det->set_t_capture(rt - det->t_sent() + det->t_capture());
@@ -607,12 +611,13 @@ void Processor::run() {
     vision.stop();
 }
 
-Field_Dimensions Processor::decodeGeometryPacket(SSL_GeometryFieldSize* fieldSize) {
+Field_Dimensions Processor::decodeGeometryPacket(const SSL_GeometryFieldSize* fieldSize) {
     SSL_FieldCicularArc* penalty = nullptr;
     SSL_FieldCicularArc* center = nullptr;
     float displacement = 0.500f;  // default displacment
 
-    for (int i = 0; fieldSize->field_arcs().size(); i++) {
+    for (int i = 0; i < fieldSize->field_arcs().size(); i++) {
+        cout << fieldSize->field_arcs().Get(i).center().x() << endl;
         if (fieldSize->field_arcs().Get(i).center().x() == 0) {
             // Assume center circle
             *center = fieldSize->field_arcs().Get(i);
@@ -635,6 +640,8 @@ Field_Dimensions Processor::decodeGeometryPacket(SSL_GeometryFieldSize* fieldSiz
         }
     }
 
+    cout << flush;
+
     // Force a resize
     // TODO fix hardcoded values here
     return Field_Dimensions(
@@ -647,12 +654,12 @@ Field_Dimensions Processor::decodeGeometryPacket(SSL_GeometryFieldSize* fieldSiz
         0.010f,                // PenaltyDiam
         penalty->radius(),     // ArcRadius
         center->radius(),      // CenterRadius
-        center->radius() * 2,  // CenterDiameter
+        (center->radius()) * 2,  // CenterDiameter
         displacement,          // GoalFlat
         fieldSize->field_width() +
-        fieldSize->boundary_width() * 2,
+        (fieldSize->boundary_width()) * 2,
         fieldSize->field_length() +
-        fieldSize->boundary_width() * 2);
+        (fieldSize->boundary_width()) * 2);
 }
 
 void Processor::sendRadioData() {
