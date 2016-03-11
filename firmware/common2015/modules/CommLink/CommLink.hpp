@@ -4,7 +4,7 @@
 #include <rtos.h>
 
 #include "rj-macros.hpp"
-#include "rtp.hpp"
+#include "packet.hpp"
 #include "helper-funcs.hpp"
 #include "rtos-mgmt/mail-helper.hpp"
 #include "CommModule.hpp"
