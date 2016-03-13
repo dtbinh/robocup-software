@@ -1,0 +1,21 @@
+digraph Client {
+    rankdir=LR;
+
+    start [shape=doublecircle];
+    start -> disconnected;
+    disconnected, wait2send, wait2rcv;
+
+    disconnected -> wait2sendRandom [label="Unaddressed packet rcvd"];
+
+    wait2sendRandom -> sendRandom [label="Reply timer fired"];
+
+    sendRandom -> wait2rcv;
+
+    wait2send -> send [label="Reply timer fired"];
+
+    send -> wait2rcv;
+
+    wait2rcv -> wait2sendRandom [label="Unaddressed packet rcvd"];
+
+    wait2rcv -> wait2send [label="Packet rcvd"];
+}
