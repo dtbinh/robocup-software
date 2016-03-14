@@ -1,0 +1,19 @@
+digraph party {
+    rankdir=LR;
+    node [shape=record];
+
+    field_computer [label="Field\nComputer|cc1201s"];
+
+    base [label="Base\nStation"];
+    field_computer -> base [dir="both"];
+
+    robot0;
+    robot1;
+    robot2;
+    robot3;
+    robot4;
+    robot5;
+    robot6;
+
+    base -> {robot0, robot1, robot2, robot3,robot4,robot5,robot6} [dir="both"];
+}

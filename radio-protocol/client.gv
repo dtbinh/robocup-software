@@ -1,5 +1,6 @@
 digraph Client {
     rankdir=LR;
+    ratio="compress";
 
     start [shape=doublecircle];
     start -> disconnected;

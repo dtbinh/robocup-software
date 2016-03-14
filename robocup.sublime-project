@@ -8,7 +8,6 @@
                 ".idea",
                 "__pycache__",
                 "api_docs",
-                "build",
                 "downloads",
                 "firmware/external",
                 "old",
