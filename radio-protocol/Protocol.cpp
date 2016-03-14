@@ -9,9 +9,9 @@ packet types:
 *
 * push firmware update from computer
 * based on hash of file, only update if needed?
-* 
+*
 * FirmwareUpdateAnnounce
-* FirmwareUpdateReply - ack that you heard it, reply with radio 
+* FirmwareUpdateReply - ack that you heard it, reply with radio
 
 
 
@@ -32,71 +32,57 @@ Reliable comm:
 * a la tcp?
 * connection handshake
 * choose port?  connection id?
-* 
+*
 
 Reliable multicast?
 * Yes.  But if a robot breaks connection, log it and drop it
 
 
 Status Update
-* 
+*
+*
 
-
+Channels?
+* set channel spacing in reg config via SmartRF Studio
+* DIP switch on robot?
+* Option selection in soccer
 */
 
-
-class RobotParameterUpdate {
+class RobotParameterUpdater {
 public:
-    void invalidateParameter(const std::string &key, uint8_t robotID);
-    void invalidateParameter(const std::string &key);
+    void invalidateParameter(const std::string& key, uint8_t robotID);
+    void invalidateParameter(const std::string& key);
 };
 
-
-
-
 class ReliableChannel {
-
-    template<typename ARRAY_TYPE>
+    template <typename ARRAY_TYPE>
     void send(const ARRAY_TYPE& buffer, int size);
 };
 
-
 class PacketHeader {
 public:
-
 };
 
-template<class MSG_TYPE, int MSG_COUNT, class HDR_CLASS = PacketHeader>
+template <class MSG_TYPE, int MSG_COUNT, class HDR_CLASS = PacketHeader>
 class Packet {
 public:
-
 private:
     HDR_CLASS _header;
     std::array<MSG_TYPE, MSG_COUNT> _messages;
 };
 
 struct RobotMessage {
-    uint8_t unique_id = 0; // robot being addressed.  0 == nobody
+    uint8_t unique_id = 0;  // robot being addressed.  0 == nobody
 };
-
-struct ControlMessage : public RobotMessage {
-    int16_t vel_x;
-    int16_t vel_y;
-    int16_t vel_w;
-    uint16_t kick_power;
-    unsigned int chip:1;    // 1 == chip, 0 == kick
-    unsigned int kick_mode:2;   // 0 == do nothing, 1 == on beam break, 2 = immediate
-};
-
 
 struct RobotReplyMessage {
     uint8_t unique_id;
-    unsigned int shell:4;
+    unsigned int shell : 4;
     // TODO: voltage levels
 };
 
 struct Packet {
-    unsigned int type:4;
+    unsigned int type : 4;
 
     ControlMessage control[6];
 };
@@ -120,9 +106,8 @@ private:
     CC1201* _radio;
 };
 
-
-
-// TODO: if we haven't heard from base station in a while, timeout and "disconnect"
+// TODO: if we haven't heard from base station in a while, timeout and
+// "disconnect"
 class ProtocolClient : public ProtocolEntity {
 public:
     ProtocolClient(uint8_t unique_id, CommModule* comm, CC1201* radio)
@@ -146,7 +131,7 @@ public:
 
 private:
     void _sendReply(void* arg) {
-        std::unique_ptr pkt(new RobotReplyMessage); // TODO: should be a packet
+        std::unique_ptr pkt(new RobotReplyMessage);  // TODO: should be a packet
         commModule()->send(pkt);
     }
 
@@ -184,10 +169,12 @@ private:
         }
     }
 
-    // Timer used to delay our reply to the base station according to our assigned timeslot
+    // Timer used to delay our reply to the base station according to our
+    // assigned timeslot
     RtosTimer _replyTimer;
 
-    // whether or not we're in communication mode (attempting to talk to a base station)
+    // whether or not we're in communication mode (attempting to talk to a base
+    // station)
     bool _started = false;
 
     // whether or not we're connected to the radio base station
@@ -197,23 +184,19 @@ private:
     ControlMessage _controlMessage;
 };
 
-
 class BaseStation : public ProtocolEntity {
 public:
-    
     /// After this amount of time (ms) of radio silence from a robot, it is
     /// considered disconnected
     static uint32_t ClientTimeout = 200;
 
 private:
-
     struct ClientInfo {
         uint32_t lastPacketTime;
     };
 
     std::map<int, ClientInfo> _clients;
 };
-
 
 // OTA Firmware update
 // Parameter tuning

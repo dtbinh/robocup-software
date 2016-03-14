@@ -91,16 +91,12 @@ void InitializeCommModule() {
         new CC1201(RJ_SPI_BUS, RJ_RADIO_nCS, RJ_RADIO_INT, preferredSettings,
                    sizeof(preferredSettings) / sizeof(registerSetting_t));
 
-    // Open a socket for running tests across the link layer
-    // The LINK port handlers are always active, regardless of whether or not a
-    // working radio is connected.
+    // Open a socket for running tests across the link layer. The LINK port
+    // handlers are always active, regardless of whether or not a working radio
+    // is connected.
     commModule->setRxHandler(&loopback_rx_cb, rtp::port::LINK);
     commModule->setTxHandler(&loopback_tx_cb, rtp::port::LINK);
 
-    /*
-     * Ports are always displayed in ascending (lowest -> highest) order
-     * according to its port number when using the console.
-     */
     if (global_radio->isConnected() == true) {
         LOG(INIT, "Radio interface ready on %3.2fMHz!", global_radio->freq());
 
