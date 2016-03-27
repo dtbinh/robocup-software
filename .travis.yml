@@ -11,7 +11,7 @@ branches:
 before_install:
   - travis_wait brew update > brew-update.log
   - travis_wait brew upgrade > brew-upgrade.log
-  - travis_wait 30 util/osx-setup
+  - travis_wait 50 util/osx-setup
 
 cache:
   directories:
