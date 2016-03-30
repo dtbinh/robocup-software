@@ -311,7 +311,7 @@ void Processor::run() {
 
             if (packet->wrapper.has_geometry()) {
                 // DEMO: Test out field sizes
-                const SSL_GeometryFieldSize fieldSize = packet->geometry().field();
+                const SSL_GeometryFieldSize fieldSize = packet->wrapper.geometry().field();
                 cout << "Len: " << fieldSize.field_length() << " Width: " <<
                     fieldSize.field_width() << endl;
                 // FIXME - Account for network latency
