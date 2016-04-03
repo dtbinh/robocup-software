@@ -15,7 +15,7 @@ public:
     virtual std::unique_ptr<Path> run(
         MotionInstant startInstant, const MotionCommand* cmd,
         const MotionConstraints& motionConstraints,
-        const Geometry2d::ShapeSet* obstacles,
+        std::shared_ptr<const Geometry2d::ShapeSet> obstacles,
         std::unique_ptr<Path> prevPath = nullptr) override;
 
     virtual MotionCommand::CommandType commandType() const override {
@@ -27,11 +27,11 @@ public:
 private:
     bool shouldReplan(MotionInstant startInstant, const MotionCommand* cmd,
                       const MotionConstraints& motionConstraints,
-                      const Geometry2d::ShapeSet* obstacles,
+                      std::shared_ptr<const Geometry2d::ShapeSet> obstacles,
                       const Path* prevPath);
     Geometry2d::Point calculateNonblockedPathEndpoint(
         Geometry2d::Point start, Geometry2d::Point dir,
-        const Geometry2d::ShapeSet* obstacles);
+        std::shared_ptr<const Geometry2d::ShapeSet> obstacles);
 
     /// If the desired target velocity changes by this much, the path is
     /// replanned

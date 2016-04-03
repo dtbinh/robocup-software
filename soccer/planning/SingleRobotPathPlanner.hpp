@@ -20,7 +20,7 @@ public:
     virtual std::unique_ptr<Path> run(
         MotionInstant startInstant, const MotionCommand* cmd,
         const MotionConstraints& motionConstraints,
-        const Geometry2d::ShapeSet* obstacles,
+        std::shared_ptr<const Geometry2d::ShapeSet> obstacles,
         std::unique_ptr<Path> prevPath = nullptr) = 0;
 
     /// The MotionCommand type that this planner handles
@@ -41,10 +41,11 @@ public:
     ///
     /// Subclasses will generally use this method in addition to their own
     /// planner-specific checks to determine if a replan is necessary.
-    static bool shouldReplan(MotionInstant currentInstant,
-                             const MotionConstraints& motionConstraints,
-                             const Geometry2d::ShapeSet* obstacles,
-                             const Path* prevPath);
+    static bool shouldReplan(
+        MotionInstant currentInstant,
+        const MotionConstraints& motionConstraints,
+        std::shared_ptr<const Geometry2d::ShapeSet> obstacles,
+        const Path* prevPath);
 
 private:
     static ConfigDouble* _goalChangeThreshold;

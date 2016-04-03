@@ -13,7 +13,7 @@ public:
     virtual std::unique_ptr<Path> run(
         MotionInstant startInstant, const MotionCommand* cmd,
         const MotionConstraints& motionConstraints,
-        const Geometry2d::ShapeSet* obstacles,
+        std::shared_ptr<const Geometry2d::ShapeSet> obstacles,
         std::unique_ptr<Path> prevPath = nullptr) override;
 
     /// The MotionCommand type that this planner handles
@@ -26,7 +26,8 @@ public:
     /// by a configurable threshold.
     static Geometry2d::Point findNonBlockedGoal(
         Geometry2d::Point pt, boost::optional<Geometry2d::Point> prevPt,
-        const Geometry2d::ShapeSet& obstacles, int maxItr = 300);
+        std::shared_ptr<const Geometry2d::ShapeSet> obstacles,
+        int maxItr = 300);
 
     static void createConfiguration(Configuration* cfg);
 

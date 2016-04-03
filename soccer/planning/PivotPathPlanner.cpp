@@ -11,11 +11,10 @@ using namespace Geometry2d;
 
 namespace Planning {
 
-bool PivotPathPlanner::shouldReplan(MotionInstant startInstant,
-                                    const MotionCommand* cmd,
-                                    const MotionConstraints& motionConstraints,
-                                    const Geometry2d::ShapeSet* obstacles,
-                                    const Path* prevPath) {
+bool PivotPathPlanner::shouldReplan(
+    MotionInstant startInstant, const MotionCommand* cmd,
+    const MotionConstraints& motionConstraints,
+    shared_ptr<const Geometry2d::ShapeSet> obstacles, const Path* prevPath) {
     PivotCommand command = *dynamic_cast<const PivotCommand*>(cmd);
     debugThrow("Unfinished Class");
     // TODO Implement This
@@ -25,7 +24,8 @@ bool PivotPathPlanner::shouldReplan(MotionInstant startInstant,
 std::unique_ptr<Path> PivotPathPlanner::run(
     MotionInstant startInstant, const MotionCommand* cmd,
     const MotionConstraints& motionConstraints,
-    const Geometry2d::ShapeSet* obstacles, std::unique_ptr<Path> prevPath) {
+    shared_ptr<const Geometry2d::ShapeSet> obstacles,
+    std::unique_ptr<Path> prevPath) {
     // TODO implement actual Pivoting
     debugThrow("Unfinished Class");
 

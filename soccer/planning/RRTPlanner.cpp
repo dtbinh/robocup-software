@@ -5,6 +5,8 @@
 #include <protobuf/LogFrame.pb.h>
 #include "motion/TrapezoidalMotion.hpp"
 #include "Util.hpp"
+#include <rrt/BiRRT.hpp>
+#include "RoboCupStateSpace.hpp"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,7 +24,7 @@ RRTPlanner::RRTPlanner(int maxIterations) : _maxIterations(maxIterations) {}
 
 bool RRTPlanner::shouldReplan(MotionInstant start, MotionInstant goal,
                               const MotionConstraints& motionConstraints,
-                              const Geometry2d::ShapeSet* obstacles,
+                              shared_ptr<const Geometry2d::ShapeSet> obstacles,
                               const Path* prevPath) const {
     if (SingleRobotPathPlanner::shouldReplan(start, motionConstraints,
                                              obstacles, prevPath)) {
@@ -47,7 +49,8 @@ bool RRTPlanner::shouldReplan(MotionInstant start, MotionInstant goal,
 std::unique_ptr<Path> RRTPlanner::run(
     MotionInstant start, const MotionCommand* cmd,
     const MotionConstraints& motionConstraints,
-    const Geometry2d::ShapeSet* obstacles, std::unique_ptr<Path> prevPath) {
+    shared_ptr<const Geometry2d::ShapeSet> obstacles,
+    std::unique_ptr<Path> prevPath) {
     // This planner only works with commands of type 'PathTarget'
     assert(cmd->getCommandType() == Planning::MotionCommand::PathTarget);
     Planning::PathTargetCommand target =
@@ -68,7 +71,7 @@ std::unique_ptr<Path> RRTPlanner::run(
     boost::optional<Geometry2d::Point> prevGoal;
     if (prevPath) prevGoal = prevPath->end().motion.pos;
     goal.pos = EscapeObstaclesPathPlanner::findNonBlockedGoal(
-        goal.pos, prevGoal, *obstacles);
+        goal.pos, prevGoal, obstacles);
 
     // Replan if needed, otherwise return the previous path unmodified
     if (shouldReplan(start, goal, motionConstraints, obstacles,
@@ -89,21 +92,24 @@ std::unique_ptr<Path> RRTPlanner::run(
         }
 
         // Generate and return a cubic bezier path using the waypoints
-        return generateCubicBezier(points, *obstacles, motionConstraints,
+        return generateCubicBezier(points, obstacles, motionConstraints,
                                    start.vel, goal.vel);
     } else {
         return prevPath;
     }
 }
 
-vector<Point> RRTPlanner::runRRT(MotionInstant start, MotionInstant goal,
-                                 const MotionConstraints& motionConstraints,
-                                 const Geometry2d::ShapeSet* obstacles) {
+vector<Point> RRTPlanner::runRRT(
+    MotionInstant start, MotionInstant goal,
+    const MotionConstraints& motionConstraints,
+    shared_ptr<const Geometry2d::ShapeSet> obstacles) {
     unique_ptr<InterpolatedPath> path = make_unique<InterpolatedPath>();
 
     // Initialize two RRT trees
-    FixedStepTree startTree;
-    FixedStepTree goalTree;
+    auto stateSpace = make_shared<RoboCupStateSpace>();
+    RRT::BiRRT<Geometry2d::Point> biRRT(stateSpace);
+    biRRT.setStartState(start);
+    biRRT.setGoalState(goal);
     startTree.init(start.pos, obstacles);
     goalTree.init(goal.pos, obstacles);
     startTree.step = goalTree.step = .15f;
@@ -149,7 +155,7 @@ vector<Point> RRTPlanner::runRRT(MotionInstant start, MotionInstant goal,
 }
 
 void RRTPlanner::optimize(vector<Geometry2d::Point>& pts,
-                          const Geometry2d::ShapeSet* obstacles,
+                          shared_ptr<const Geometry2d::ShapeSet> obstacles,
                           const MotionConstraints& motionConstraints,
                           Geometry2d::Point vi, Geometry2d::Point vf) {
     unsigned int start = 0;
@@ -214,7 +220,7 @@ float getTime(InterpolatedPath& path, int index,
 
 std::unique_ptr<InterpolatedPath> RRTPlanner::generatePath(
     const std::vector<Geometry2d::Point>& points,
-    const Geometry2d::ShapeSet& obstacles,
+    shared_ptr<const Geometry2d::ShapeSet> obstacles,
     const MotionConstraints& motionConstraints, Geometry2d::Point vi,
     Geometry2d::Point vf) {
     return generateCubicBezier(points, obstacles, motionConstraints, vi, vf);
@@ -535,7 +541,7 @@ std::vector<InterpolatedPath::Entry> RRTPlanner::generateVelocityPath(
 
 std::unique_ptr<Planning::InterpolatedPath> RRTPlanner::generateCubicBezier(
     const std::vector<Geometry2d::Point>& points,
-    const Geometry2d::ShapeSet& obstacles,
+    shared_ptr<const Geometry2d::ShapeSet> obstacles,
     const MotionConstraints& motionConstraints, Geometry2d::Point vi,
     Geometry2d::Point vf) {
     const int interpolations = 40;

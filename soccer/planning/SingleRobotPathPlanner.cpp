@@ -6,6 +6,8 @@
 #include "RRTPlanner.hpp"
 #include "PivotPathPlanner.hpp"
 
+using namespace std;
+
 namespace Planning {
 
 REGISTER_CONFIGURABLE(SingleRobotPathPlanner);
@@ -58,17 +60,18 @@ angleFunctionForCommandType(const Planning::RotationCommand& command) {
             Geometry2d::Point targetPt =
                 static_cast<const Planning::FacePointCommand&>(command)
                     .targetPos;
-            std::function<AngleInstant(MotionInstant)> function =
-                [targetPt](MotionInstant instant) {
-                    return AngleInstant(instant.pos.angleTo(targetPt));
-                };
+            std::function<AngleInstant(MotionInstant)> function = [targetPt](
+                MotionInstant instant) {
+                return AngleInstant(instant.pos.angleTo(targetPt));
+            };
             return function;
         }
         case RotationCommand::FaceAngle: {
-            float angle = static_cast<const Planning::FaceAngleCommand&>(
-                              command).targetAngle;
-            std::function<AngleInstant(MotionInstant)> function =
-                [angle](MotionInstant instant) { return AngleInstant(angle); };
+            float angle =
+                static_cast<const Planning::FaceAngleCommand&>(command)
+                    .targetAngle;
+            std::function<AngleInstant(MotionInstant)> function = [angle](
+                MotionInstant instant) { return AngleInstant(angle); };
             return function;
         }
         case RotationCommand::None:
@@ -81,7 +84,7 @@ angleFunctionForCommandType(const Planning::RotationCommand& command) {
 
 bool SingleRobotPathPlanner::shouldReplan(
     MotionInstant currentInstant, const MotionConstraints& motionConstraints,
-    const Geometry2d::ShapeSet* obstacles, const Path* prevPath) {
+    shared_ptr<const Geometry2d::ShapeSet> obstacles, const Path* prevPath) {
     if (!prevPath) return true;
 
     // if this number of microseconds passes since our last path plan, we

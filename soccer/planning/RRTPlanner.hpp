@@ -1,7 +1,6 @@
 #pragma once
 
 #include "SingleRobotPathPlanner.hpp"
-#include "Tree.hpp"
 #include <Geometry2d/ShapeSet.hpp>
 #include <Geometry2d/Point.hpp>
 #include <planning/InterpolatedPath.hpp>
@@ -55,7 +54,7 @@ public:
      */
     static std::unique_ptr<Planning::InterpolatedPath> generatePath(
         const std::vector<Geometry2d::Point>& points,
-        const Geometry2d::ShapeSet& obstacles,
+        std::shared_ptr<const Geometry2d::ShapeSet> obstacles,
         const MotionConstraints& motionConstraints, Geometry2d::Point vi,
         Geometry2d::Point vf);
 
@@ -68,7 +67,7 @@ public:
     std::unique_ptr<Path> run(
         MotionInstant start, const MotionCommand* cmd,
         const MotionConstraints& motionConstraints,
-        const Geometry2d::ShapeSet* obstacles,
+        std::shared_ptr<const Geometry2d::ShapeSet> obstacles,
         std::unique_ptr<Path> prevPath = nullptr) override;
 
 protected:
@@ -80,14 +79,14 @@ protected:
     /// replaced with a newly-planned one
     bool shouldReplan(MotionInstant start, MotionInstant goal,
                       const MotionConstraints& motionConstraints,
-                      const Geometry2d::ShapeSet* obstacles,
+                      std::shared_ptr<const Geometry2d::ShapeSet> obstacles,
                       const Path* prevPath) const;
 
     /// Runs a bi-directional RRT to attempt to join the start and end states.
     std::vector<Geometry2d::Point> runRRT(
         MotionInstant start, MotionInstant goal,
         const MotionConstraints& motionConstraints,
-        const Geometry2d::ShapeSet* obstacles);
+        std::shared_ptr<const Geometry2d::ShapeSet> obstacles);
 
     /**
      * Takes in waypoints and returns a InterpolatedPath with a generated
@@ -100,7 +99,7 @@ protected:
      */
     static std::unique_ptr<Planning::InterpolatedPath> generateCubicBezier(
         const std::vector<Geometry2d::Point>& points,
-        const Geometry2d::ShapeSet& obstacles,
+        std::shared_ptr<const Geometry2d::ShapeSet> obstacles,
         const MotionConstraints& motionConstraints, Geometry2d::Point vi,
         Geometry2d::Point vf);
 
@@ -108,7 +107,7 @@ protected:
      *  Removes unnecesary waypoints in the path
      */
     static void optimize(std::vector<Geometry2d::Point>& path,
-                         const Geometry2d::ShapeSet* obstacles,
+                         std::shared_ptr<const Geometry2d::ShapeSet> obstacles,
                          const MotionConstraints& motionConstraints,
                          Geometry2d::Point vi, Geometry2d::Point vf);
 
